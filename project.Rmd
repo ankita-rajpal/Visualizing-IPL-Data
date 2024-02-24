@@ -1,0 +1,283 @@
+---
+title: "**Visualization Project**"
+output: pdf_document
+urlcolor: blue
+fontsize: 12 pt
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(dplyr)
+
+library(knitr)
+library(kableExtra)
+```
+\begin{centering}
+
+\LARGE
+{\bf Indian Premier League(IPL):2008-2019}
+\vspace{1cm}
+
+\large
+Ankita
+
+\vspace{0.3cm}
+
+\large
+Roll No: MDS202309
+
+\large
+Email: \href{mailto:ankita.mds2023@cmi.ac.in}{ankita.mds2023@cmi.ac.in}
+
+\large
+Chennai Mathematical Institute
+
+\end{centering}
+\newpage
+
+
+
+# Introduction:
+
+IPL is a professional Twenty20 cricket league founded by the Board of Control for Cricket in India (BCCI) in 2008. It is an annual carnival festival that captivates fans worldwide with its fast paces T20 contest. The IPL features eight franchise-based teams, each representing different Indian cities. These teams are a captivating mix of international and domestic cricketing talent. It is the most attended cricket league in the world and rank sixth among all sports leagues.  In this report, we embark on a data-driven exploration of IPL seasons spanning from 2008 to 2019. Our objective is to dive into statistical aspects, unravel trends, and extract meaningful insights from IPL's rich history.
+
+# Data Description:
+We have chosen two .csv files from [this](https://www.kaggle.com/datasets/anuranroy/ipldatasets) data set, namely matches and deliveries. The 'matches.csv' file consist of match wise data for all the seasons from 2008 to 2019. Following are the variable of interest from data set 'matches':
+
+\vspace{0.1cm}
+
+\begin{enumerate}
+\item Matches ID
+\item Season
+\item Team 1
+\item Team 2
+\item Toss Winner
+\item Winner  
+\item Win by runs  
+\item Win by Wickets  
+\end{enumerate}
+The second data set i.e 'deliveries' consists of ball wise data of each inning of all the matches from 2008 to 2019. The variables of interest in this data set are as follows:
+\begin{enumerate}
+\item Match ID  
+\item Inning  
+\item Batting Team  
+\item Bowling Team  
+\item Over  
+\item Ball  
+\item Batsman Runs  
+\item Total Runs  
+\item Dismissal  
+\end{enumerate}
+
+# Exploratory Data Analysis:
+
+
+
+```{r pressure, echo=FALSE,include=F}
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+matches<-read.csv( "C:/Users/Ankita/Desktop/VISU PROJECT/IPL data/matches.csv")  
+deliveries<-read.csv("C:/Users/Ankita/Desktop/VISU PROJECT/IPL data/deliveries.csv")  
+figure_counter<-1
+```
+In the following graph, we plotted a bar graph showing total number of matches won by each team, in all the 12 years, which clearly shows that Mumbai Indians won the most number of matches followed by Chennai Super Kings and Kolkata Knight Riders. 
+  
+
+```{r,echo=F,warning = FALSE, message = FALSE}
+
+matches %>%
+  filter(winner != '') %>%
+  ggplot(aes(fct_infreq(winner)))+
+  geom_bar(size=0.01,fill='#15D7F1',alpha=1)+
+  theme_update()+
+  theme(axis.text.x = element_text(angle = 90,vjust=0.5,hjust=1))+
+  labs(title='Number of Matches won by each team from 2008-2019',
+       x='Teams',y='Number of Wins')
+
+```
+\newpage
+
+
+
+```{r,echo=F,warning = FALSE, message = FALSE}
+finale<-matches %>% select(id,season,winner) %>% 
+  group_by(season) %>% summarise(id=max(id))
+finale_winners<-matches%>%filter(id %in%finale$id)%>%select(season,winner)%>%
+  arrange(season)
+
+kable(finale_winners, format = "markdown", col.names = colnames(finale_winners), 
+      caption = "Tournament Winners") %>%
+  kable_styling(font_size = 10)  
+```
+
+```{r,echo=F}
+victories<-finale_winners%>%group_by(winner)%>%count(winner)
+victories %>%mutate(win_percent=round(n/sum(victories$n)*100),2) %>%
+  ggplot(aes("",n,fill=winner))+
+  geom_bar(stat = 'identity',width = 1)+
+  coord_polar(theta = 'y')+
+  theme_void()+
+  geom_text(aes(label=paste0(win_percent,'%')),
+            position=position_stack(vjust =0.5))+
+  labs(title='Number of IPL Tournaments won by each Team',
+       fill='Teams')
+```
+Here is the table showing IPL Tournament Winners, each season from 2008-2019. The sequence of tournament winners reveals that IPL has witnessed a competitive landscape and its unpredictability with multiple teams winning titles, over the years. Also, it's clear from the chart that how Mumbai Indians emerges as the most successful IPL team, clinching the IPL title four times. Chennai Super Kings follow closely behind with 3 tournament victories, showcasing their competitiveness over the years. Kolkata Knight Riders have secured 2 tournament wins, underscoring their strong performances in select seasons and their ability to claim the IPL title. The remaining teams have won the title once, showing they have potential to compete at highest level.   
+  
+Now, we wanted to know the trends of winning of top two IPL teams, Mumbai Indians and Chennai Superkings, the following line graph shows the number of matches won by the teams, over the period of time.  
+\newline
+\newline
+```{r,echo=F}
+
+wins<-matches%>% filter(winner!="")%>% mutate(season=as.factor(season)) %>%
+  group_by(season) %>%
+  count(winner) 
+
+top2teams<-wins %>% 
+  filter(winner %in% c('Mumbai Indians','Chennai Super Kings'))%>%
+  filter(season != 2016 & season != 2017)
+top2teams %>% ggplot(aes(x=as.numeric(season)+2007,n,colour=winner))+
+  geom_point(size=6,alpha=0.3)+
+  #facet_wrap(~winner)+
+  geom_line(aes(y=n),linewidth=1.25, alpha=0.6)+
+  labs(title='Time Series data of top 2 IPL Teams',
+       x='Year',y='Number of Wins',fill='Time',colour='Teams')+
+  scale_x_continuous(
+    breaks = c(2008:2019),  # Specify your custom breaks
+    labels = c(2008:2019)  # You can also specify custom labels if needed
+  )
+```
+It can be observed that Chennai Super Kings have maintained remarkable consistency in their performance, consistently winning a high number of matches over the years. They have won 9 or more matches in nine out of the twelve seasons analyzed, showcasing their stability and strong team dynamics. Mumbai Indians exhibit a more variable performance pattern, with fluctuations in the number of matches won each season. Their highest match wins in a single season were 13 matches in 2010, reflecting periods of dominance, while they've also had seasons with fewer wins.  
+\newpage
+Here's a pie chart to analyse whether or not  winning a toss is an advantage. It shows the percentage of the two results of a match after winning the toss.      
+\newline
+\newline
+```{r,echo=F}
+tossdf<- matches %>% filter(winner !='') %>%
+  select(toss_winner,winner) %>%
+  mutate(winning=if_else(toss_winner==winner,'won','loss'))
+tossdata<-tossdf %>% group_by(winning) %>% count(winning) %>%
+  mutate(Percent = round(n/nrow(tossdf)*100,2)) 
+
+tossdata %>% ggplot(aes("",Percent,fill=winning))+
+  geom_bar(stat = 'identity',width = 1)+
+  coord_polar(theta = 'y')+
+  theme_void()+
+  geom_text(aes(label=paste0(Percent,'%')),position=position_stack(vjust =0.5))+
+  labs(title='Outcome of matches after winning the toss',
+       fill='Outcome')
+```
+- The team that wins the toss appears to have a very slight advantage, as they win approximately 52% of the time.  
+- But on the other hand, the fact that the team that wins the toss loses approximately 48% of the time shows that cricket is a sport where the outcome is influenced by multiple factors beyond just winning the toss. It underscores the importance of skill, strategy, and performance on the field.  
+- Winning the toss does not guarantee victory. While it provides an edge, it is not a definitive predictor of the match's outcome. Teams still need to perform well in batting, bowling, and fielding to secure a win
+
+\newpage
+  
+Here's a double bar graph showing the number of matches won by all the teams in different seasons, by batting first vs by bowling first.    
+\newline
+\newline
+```{r,echo=F}
+matchdf<-matches %>%
+  drop_na(winner) %>%
+  select(season,win_by_runs,win_by_wickets) %>%
+  mutate(by_runs=as.logical(win_by_runs)) %>%
+  mutate(win_by=if_else(by_runs==T,'batting first','bowling first'))
+
+matchdf %>%
+  ggplot(aes(as.factor(season),fill=win_by)) +
+  geom_bar(position = 'dodge')+
+  labs(title='Number of matches won by batting vs bowling first',
+       x='Seasons',y='Number of wins',fill='Won By')+
+  theme(legend.position = 'bottom')
+```
+The data reveals that the number of matches won by teams batting first and teams bowling first varies from season to season. This variability indicates that match outcomes are influenced by multiple factors, including pitch conditions, team strengths, and strategies.Some seasons show a preference for teams batting first, while in other seasons, teams bowling first have an edge. This suggests that pitch and weather conditions, as well as other contextual factors, play a significant role in determining the choice made by the toss-winning team. The overall distribution of matches won by teams batting first and teams bowling first seems relatively balanced over the years. This balance is a positive sign for the league, indicating competitive matches and an even playing field.
+
+\newpage
+Here's a stacked bar graph displays the proportion of batsman runs scored by boundaries and non-boundaries.    
+
+```{r,echo=F}
+runsbyfours<-deliveries %>% filter(batsman_runs==4) %>%
+  select(batting_team,batsman_runs)%>%
+  group_by(batting_team) %>% summarise(sum(batsman_runs))
+
+runsbysixes<-deliveries %>% filter(batsman_runs==6) %>%
+  select(batting_team,batsman_runs)%>%
+  group_by(batting_team) %>% summarise(sum(batsman_runs))
+
+otherruns<-deliveries %>% filter(batsman_runs!=4 & batsman_runs!=6) %>%
+  select(batting_team,batsman_runs)%>%
+  group_by(batting_team) %>% summarise(sum(batsman_runs))
+runsdata<-data.frame(Team=runsbyfours$batting_team,
+                 RunsByFours=runsbyfours$`sum(batsman_runs)`,
+                 RunsBySixes=runsbysixes$`sum(batsman_runs)`,
+                 OtherRuns=otherruns$`sum(batsman_runs)`)
+
+df_long <- runsdata %>%
+  pivot_longer(cols = c(RunsByFours, RunsBySixes, OtherRuns), names_to = "runs_type", values_to = "runs")
+
+# Create the stacked bar graph
+ggplot(df_long, aes(x = Team, y = runs, fill = runs_type)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Runs Distribution by Type", x = "Teams", y = "Total Runs",
+       fill="Runs Type") +
+  scale_fill_manual(values = c("RunsByFours" = "lawngreen", "RunsBySixes" = "orange2", "OtherRuns" = "seagreen")) +
+  theme_minimal()+
+  #theme(axis.text.y = element_text(angle = 90,vjust=0.5,hjust=1))+
+  theme(legend.position = 'bottom')+
+  coord_flip()
+  
+
+```
+  
+- It can be observed that teams vary in their scoring patterns. Some teams rely heavily on boundaries (4's and 6's), while others accumulate runs through singles, doubles, and running between the wickets (other runs).   
+
+- Mumbai Indians, Chennai Super Kings and Royal Challengers Bangalore have consistently scored a high number of runs, with significant contributions from boundaries.    
+
+- Teams with a high number of runs from 6's are likely to have power hitters in their batting line-up. These players excel in clearing the boundaries.   
+- Teams that have a balanced distribution of runs among 4's, 6's, and other runs demonstrate versatility in their batting approach. They can adapt to different match situations.    
+
+\newpage
+Here's a bar graph that provides insights into the various ways batsmen have been dismissed during 12 years of IPL matches.    
+
+```{R,echo=F,warning=F,message=F}
+deliveries %>% select(dismissal_kind) %>% 
+  filter(dismissal_kind!='' & dismissal_kind!='obstructing the field') %>%
+  ggplot(aes(dismissal_kind,fill=dismissal_kind))+
+  geom_bar()+
+  geom_text(
+    aes(label = stat(count)), stat = "count",
+    position = position_stack(vjust = 0.5))+
+  labs(x="Dismissal Type", y="Count",
+       title = "Frequency of Different types of Dismissals")+
+  theme(legend.position = 'bottom',
+        axis.text.x = element_text(angle = 90,vjust=0.5,hjust=1))
+
+```
+  
+  
+- It can be inferred from the bar graph that the most common form of dismissal in IPL matches is "caught," with a substantial number of batsmen losing their wickets in this manner. This indicates the significance of fielding skills and the ability of fielders to take catches.   
+
+- "Run out" is another frequently occurring dismissal type, highlighting the importance of quick fielding, accurate throws, and teamwork in executing run-outs. Run-outs can often turn the tide of a match.   
+
+- Teams and captains may analyze these dismissal patterns to formulate strategies for upcoming matches. For example, identifying weaknesses in opponents' batting dismissals can inform bowling plans.
+
+\newpage
+# Result   
+- MI and CSK are the IPL's most successful teams with 109 and 100 match wins, while KKR and RCB consistently perform well with 92 and 84 wins. Other teams like DC and KXIP have had balanced performances, whereas newer teams faced challenges with fewer wins.  
+- Winning the toss appears to provide a slight advantage, with a 52% success rate, but cricket's outcome depends on multiple factors, emphasizing the significance of skill and performance on the field. While advantageous, winning the toss doesn't guarantee victory; teams must excel in batting, bowling, and fielding for success.   
+- Seasonal variations in match outcomes based on batting or bowling first indicate the influence of multiple factors, including pitch conditions and team strategies. The balanced distribution of wins for both choices reflects competitive matches and fair competition in the IPL.  
+- In IPL matches, "caught" is the most common dismissal, emphasizing the importance of fielding and catching skills, while "run out" underscores the significance of quick fielding and teamwork. The data showcases various dismissal types, including unique ones like "hit wicket" and "retired hurt," highlighting the diversity in ways batsmen can be dismissed in cricket.   
+
+# Conclusion  
+Our analysis of the IPL dataset spanning 2008 to 2019 has provided valuable insights into team performance, toss influence, dismissal patterns, and scoring strategies. Dominant teams like Mumbai Indians and Chennai Super Kings showcased consistency, while the toss's impact varied across seasons. Common dismissals included 'caught' and 'run out,' and teams displayed diverse scoring approaches, emphasizing the importance of balanced line-ups. The passionate fan base continues to drive the IPL's global appeal, reinforcing its status as a captivating blend of cricketing prowess and entertainment. 
+
+# Dashboard
+The link to the RShiny dashboard is [here][id]
+
+
+
+[id]: https://ankita02.shinyapps.io/IPL_data_dashboard/
